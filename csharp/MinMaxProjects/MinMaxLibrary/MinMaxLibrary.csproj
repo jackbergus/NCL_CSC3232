@@ -42,6 +42,8 @@
     <Compile Include="algorithms\Winner.cs" />
     <Compile Include="algorithms\ScoreAssessment.cs" />
     <Compile Include="algorithms\PlayerConf.cs" />
+    <Compile Include="utils\TreeBasedGameConfiguration.cs" />
+    <Compile Include="utils\TreeBasedPlayerConf.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
