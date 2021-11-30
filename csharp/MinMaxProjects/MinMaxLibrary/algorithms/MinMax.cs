@@ -291,7 +291,7 @@ namespace MinMaxLibrary.algorithms {
                     plLost = false;
                     oppWon = false;
                 }
-                if ((plLost && oppLost) || (plWon && plWon))
+                if ((plLost && oppLost) || (plWon && oppWon))
                     return Winner.TIE_OR_GAME_RUNNING;
 
                 // If I don't have a tie, then the game is still running (noone has won yet) or there is only one winner
@@ -355,9 +355,12 @@ namespace MinMaxLibrary.algorithms {
                 /// As a default behaviour, I never prune
                 bool alphaBetaPruning = false;
 
+
+                bool reachedLeafNode = (someoneHasWon || (!candidateChild.HasValue));
+
                 if (currentSnapshot.iterativeStep == 0)
                 { // If this is actually a function call...
-                    if (someoneHasWon || (!candidateChild.HasValue))
+                    if (reachedLeafNode)
                     {
                         // If we reached a end-of-action or win/lose state, the best action corresponds to the utility score
                         double myScore = currentSnapshot.input.data.getEnemyUtilityScore();
@@ -387,7 +390,7 @@ namespace MinMaxLibrary.algorithms {
                 }
 
 
-                if (alphaBetaPruning || (!candidateChild.HasValue))
+                if (alphaBetaPruning || (reachedLeafNode))
                 {
                     // If I reached a leaf node, this implies that i would need to return the value to the caller 
                     retVal = currentSnapshot.input;
@@ -443,9 +446,9 @@ namespace MinMaxLibrary.algorithms {
                 /// The player minimizes, the opponent maximises.
                 bool isMinimization = currentSnapshot.input.data.isPlayerTurn;
 
-
+                bool reachedLeafNode = (someoneHasWon || (!candidateChild.HasValue));
                 if (currentSnapshot.iterativeStep == 0) { // If this is actually a function call...
-                    if (someoneHasWon || (!candidateChild.HasValue)) { 
+                    if (reachedLeafNode) { 
                         // If we reached a end-of-action or win/lose state, the best action corresponds to the utility score
                         currentSnapshot.input.data.action.init(default(ActionName), currentSnapshot.input.data.getEnemyUtilityScore());
                     } else {                                           // Otherwise, setting up the initial values for the recursion, depending on the min/max
@@ -459,7 +462,7 @@ namespace MinMaxLibrary.algorithms {
                 }
 
 
-                if (!candidateChild.HasValue) {
+                if (reachedLeafNode) {
                     // If I reached a leaf node, this implies that i would need to return the value to the caller 
                     retVal = currentSnapshot.input;
                 } else {

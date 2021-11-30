@@ -12,9 +12,9 @@ namespace MinMaxProjects.tests
     public class MaxNTest
     {
 
-        private static new MaxNAlgorithm<uint, TreeBasedGameConfiguration<uint>, TreeBasedPlayerConf>.Player genPlayerWithScore(HashSet<uint> actionSet, double val = 0.0)
+        private static new MaxNAlgorithm<uint, TreeBasedGameConfiguration<uint>, TreeBasedPlayerConf>.Player genPlayerWithScore(HashSet<uint> actionSet, double val = 0.0, bool type = true)
         {
-            return new MaxNAlgorithm<uint, TreeBasedGameConfiguration<uint>, TreeBasedPlayerConf>.Player(actionSet, new TreeBasedPlayerConf(val), true);
+            return new MaxNAlgorithm<uint, TreeBasedGameConfiguration<uint>, TreeBasedPlayerConf>.Player(actionSet, new TreeBasedPlayerConf(val), type);
         }
 
         private static new List<MaxNAlgorithm<uint, TreeBasedGameConfiguration<uint>, TreeBasedPlayerConf>.Player> genPlayerListWithScore(double val1, double val2, double val3)
@@ -22,7 +22,7 @@ namespace MinMaxProjects.tests
             List<MaxNAlgorithm<uint, TreeBasedGameConfiguration<uint>, TreeBasedPlayerConf>.Player> ls = new List<MaxNAlgorithm<uint, TreeBasedGameConfiguration<uint>, TreeBasedPlayerConf>.Player>();
             ls.Add(genPlayerWithScore(null, val1));
             ls.Add(genPlayerWithScore(null, val2));
-            ls.Add(genPlayerWithScore(null, val3));
+            ls.Add(genPlayerWithScore(null, val3, false));
             return ls;
         }
 
@@ -39,7 +39,7 @@ namespace MinMaxProjects.tests
             List<MaxNAlgorithm<uint, TreeBasedGameConfiguration<uint>, TreeBasedPlayerConf>.Player> playerlist 
                 = new List<MaxNAlgorithm<uint, TreeBasedGameConfiguration<uint>, TreeBasedPlayerConf>.Player>();
             for (int i = 0; i<3; i++)
-                playerlist.Add(genPlayerWithScore(actionSet));
+                playerlist.Add(genPlayerWithScore(actionSet, 0.0, i < 2));
 
             // Generating a multidimensional array, each containing the actions provided in the i-th turn by the (i+1)-th player
             List<MaxNAlgorithm<uint, TreeBasedGameConfiguration<uint>, TreeBasedPlayerConf>.Player>[,,] scoreForEachTerminalNode = 

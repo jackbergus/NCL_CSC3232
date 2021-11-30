@@ -37,6 +37,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="tests\MaxNTest.cs" />
     <Compile Include="tests\MinMaxABTests.cs" />
+    <Compile Include="tests\RealisticTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -18,6 +18,11 @@ namespace MinMaxLibrary.algorithms
                 this.lifeBar = lifeBar;
                 this.isAntagnoistAndMax = isAntagnoistAndMax;
             }
+
+            public Player clone()
+            {
+                return new Player(actions, lifeBar, isAntagnoistAndMax);
+            }
         }
 
 
@@ -46,7 +51,9 @@ namespace MinMaxLibrary.algorithms
             public CurrentGameState(CurrentGameState x)
             {
                 gameConfiguration = x.gameConfiguration;
-                players = x.players;
+                players = new List<Player>();
+                foreach (var y in x.players)
+                    players.Add(y.clone());
                 playerIdTurn = x.playerIdTurn;
                 bestAction = x.bestAction;
                 bestUtilityVector = x.bestUtilityVector;    
@@ -55,18 +62,20 @@ namespace MinMaxLibrary.algorithms
 
             public CurrentGameState()
             {
-                gameConfiguration = default;
+                gameConfiguration = default(GameConfiguration);
                 players = new List<Player>();
                 playerIdTurn = -1;
-                bestAction = default;
+                bestAction = default(ActionName);
                 bestUtilityVector = new List<double>();
-                parentAction = default;
+                parentAction = default(ActionName);
             }
 
             public CurrentGameState(CurrentGameState x, ActionName parent, int playerIdTurn/*, double a = -double.MaxValue, double b = double.MaxValue*/)
             {
                 gameConfiguration = x.gameConfiguration;
-                players = x.players;
+                players = new List<Player>();
+                foreach (var y in x.players)
+                    players.Add(y.clone());
                 this.playerIdTurn = playerIdTurn;
                 parentAction = parent;
                 /*alpha = a;
@@ -77,7 +86,7 @@ namespace MinMaxLibrary.algorithms
             {
                 gameConfiguration = gc;
                 players = new List<Player>();
-                foreach (Player p2 in p) players.Add(p2);
+                foreach (Player p2 in p) players.Add(p2.clone());
                 this.playerIdTurn = playerIdTurn;
             }
 
@@ -153,7 +162,7 @@ namespace MinMaxLibrary.algorithms
                     plLost = false;
                     oppWon = false;
                 }
-                if ((plLost && oppLost) || (plWon && plWon))
+                if ((plLost && oppLost) || (plWon && oppWon))
                     return Winner.TIE_OR_GAME_RUNNING;
 
                 // If I don't have a tie, then the game is still running (noone has won yet) or there is only one winner
@@ -338,16 +347,15 @@ namespace MinMaxLibrary.algorithms
                 /// Returning a child that might be called in the next iterative step. If none is returned, then we stop the iteration
                 Optional<CurrentGameState> candidateChild = uns.applyFunctionNoScore(currentSnapshot.iterativeStep);
                 /// If someone won, then we still have to stop the iteration
-                bool someoneHasWon = (currentSnapshot.input.data.whoWins() != Winner.TIE_OR_GAME_RUNNING) &&
+                bool someoneHasWon = (currentSnapshot.input.data.whoWins() != Winner.TIE_OR_GAME_RUNNING) ||
                                      (currentSnapshot.input.data.playerIdTurn == -1);
-                /// The player minimizes, the opponent maximises.
-                bool isMinimization = (!someoneHasWon) && (!currentSnapshot.input.data.players[currentSnapshot.input.data.playerIdTurn].isAntagnoistAndMax);
 
 
+                bool reachedLeafNode = (someoneHasWon || (!candidateChild.HasValue));
                 if (currentSnapshot.iterativeStep == 0)
                 { // If this is actually a function call...
                     currentSnapshot.input.data.bestAction = default(ActionName);
-                    if (someoneHasWon || (!candidateChild.HasValue))
+                    if (reachedLeafNode)
                     {
                         // If we reached a end-of-action or win/lose state, the best action corresponds to the utility score
 
@@ -372,7 +380,7 @@ namespace MinMaxLibrary.algorithms
                 }
 
 
-                if (!candidateChild.HasValue)
+                if (reachedLeafNode)
                 {
                     // If I reached a leaf node, this implies that i would need to return the value to the caller 
                     retVal = currentSnapshot.input;

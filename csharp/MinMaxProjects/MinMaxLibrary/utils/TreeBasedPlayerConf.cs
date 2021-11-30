@@ -11,14 +11,17 @@ namespace MinMaxProjects.tests
     public class TreeBasedPlayerConf : PlayerConf
     {
         double x;
+        bool isLostWhenScoreIsZero, hasWonWhenScoreIsOne;
 
         /// <summary>
         /// If you have a life bar, this score might be the initialized value associated to the score.
         /// </summary>
         /// <param name="var"></param>
-        public TreeBasedPlayerConf(double var)
+        public TreeBasedPlayerConf(double var, bool isLostWhenScoreIsZero = false, bool hasWonWhenScoreIsOne = false)
         {
             x = var;
+            this.isLostWhenScoreIsZero = isLostWhenScoreIsZero;
+            this.hasWonWhenScoreIsOne = hasWonWhenScoreIsOne;
         }
 
         /// <summary>
@@ -46,7 +49,7 @@ namespace MinMaxProjects.tests
         /// <returns></returns>
         public override bool hasPlayerWon()
         {
-            return false;
+            return hasWonWhenScoreIsOne ? (System.Math.Abs(x - 1.0) < 0.001) : false;
         }
 
         /// <summary>
@@ -57,7 +60,7 @@ namespace MinMaxProjects.tests
         /// <returns></returns>
         public override bool hasPlayerLost()
         {
-            return false;
+            return isLostWhenScoreIsZero ? (System.Math.Abs(x) < 0.001) : false;
         }
     }
 }
