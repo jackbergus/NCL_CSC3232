@@ -86,6 +86,7 @@ namespace MinMaxProjects.tests
             Console.WriteLine("Tree with Min/Max approach:");
             Console.WriteLine("===========================");
             var tree = conf.fitModel(cgs);
+
             tree.Print((x) => x.ToString());
             Console.WriteLine();
             Console.WriteLine();

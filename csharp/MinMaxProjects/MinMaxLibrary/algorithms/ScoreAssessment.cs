@@ -27,9 +27,11 @@ namespace MinMaxLibrary.algorithms
         /// <param name="action">Action that is currently assessed</param>
         /// <param name="score">Score associated to the action being performed</param>
         /// <param name="isMin">Whether the best score should be associated to a minimum value or to a maximum one</param>
-        internal void update(ActionName action, double score, bool isMin)
+        internal void update(ActionName action, double score, bool isMin, bool isAverage = false)
         {
-            if ((isMin && (score < bestGlobalAction.Item2)) || ((!isMin) && (score > bestGlobalAction.Item2)))
+            if (isAverage)
+                bestGlobalAction = new Tuple<ActionName, double>(default(ActionName), bestGlobalAction.Item2 + score);
+            else if ((isMin && (score < bestGlobalAction.Item2)) || ((!isMin) && (score > bestGlobalAction.Item2)))
             {
                 bestGlobalAction = new Tuple<ActionName, double>(action, score);
             }

@@ -29,5 +29,7 @@ namespace MinMaxLibrary.algorithms
         /// </summary>
         /// <returns></returns>
         public abstract double getScore();
+
+        public abstract PlayerConf clone();
     }
 }

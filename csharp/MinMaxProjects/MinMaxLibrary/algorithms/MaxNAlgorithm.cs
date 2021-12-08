@@ -21,7 +21,7 @@ namespace MinMaxLibrary.algorithms
 
             public Player clone()
             {
-                return new Player(actions, lifeBar, isAntagnoistAndMax);
+                return new Player(actions, (PlayerConfiguration)lifeBar.clone(), isAntagnoistAndMax);
             }
         }
 

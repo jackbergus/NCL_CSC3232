@@ -62,5 +62,10 @@ namespace MinMaxProjects.tests
         {
             return isLostWhenScoreIsZero ? (System.Math.Abs(x) < 0.001) : false;
         }
+
+        public override PlayerConf clone()
+        {
+            return new TreeBasedPlayerConf(x, isLostWhenScoreIsZero, hasWonWhenScoreIsOne);
+        }
     }
 }
