@@ -16,10 +16,12 @@ namespace MinMaxProjects.tests
             HashSet<string> actionsPlayer = new HashSet<string>();
             actionsPlayer.Add("TurboPunch");
             actionsPlayer.Add("MiniPunch");
+            actionsPlayer.Add("noop");
 
             // The NPC can only perform 0.3 damage at a time
             HashSet<string> actionsNPC = new HashSet<string>();
             actionsNPC.Add("Punch");
+            actionsNPC.Add("noop");
 
             /// Initialization of the minmax algorithm
             var cgs = new MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState();
@@ -39,6 +41,12 @@ namespace MinMaxProjects.tests
                 /// upon the score of each single player! in here, I only set the damage for each player.
                 Func<MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState, string, Optional<MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState>> f = (conff, act) =>
                 {
+
+                    if (Math.Abs(conff.opponentLifeBar.getScore() + conff.playerLifeBar.getScore() - 1.0) < 0.001)
+                    {
+                        return new Optional<MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState>();
+                    }
+
                     // Creating a new configuration, where we change the turn
                     var result = new MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState(conff, act);
                     // Appending the action in the history
@@ -49,12 +57,17 @@ namespace MinMaxProjects.tests
                         Debug.Assert(actionsPlayer.Contains(act));
                         if (act.Equals("TurboPunch"))
                             result.opponentLifeBar = new TreeBasedPlayerConf(Math.Max(result.opponentLifeBar.getScore() - 0.5, 0.0), true);
-                        else // MiniPunch
+                        else if (act.Equals("MiniPunch"))
                             result.opponentLifeBar = new TreeBasedPlayerConf(Math.Max(result.opponentLifeBar.getScore() - 0.1, 0.0), true);
+                        else
+                            result.opponentLifeBar = new TreeBasedPlayerConf(Math.Max(result.opponentLifeBar.getScore() - 0.0, 0.0), true);
 
                     } else {
                         Debug.Assert(actionsNPC.Contains(act));
-                        result.playerLifeBar = new TreeBasedPlayerConf(Math.Max(result.playerLifeBar.getScore() - 0.3, 0.0), true);
+                        if (act.Equals("Punch"))
+                            result.playerLifeBar = new TreeBasedPlayerConf(Math.Max(result.playerLifeBar.getScore() - 0.3, 0.0), true);
+                        else // noop
+                            result.opponentLifeBar = new TreeBasedPlayerConf(Math.Max(result.opponentLifeBar.getScore() - 0.0, 0.0), true);
                     }
                     return result;
                 };
@@ -62,12 +75,12 @@ namespace MinMaxProjects.tests
                 var conf = new MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>(actionsNPC, actionsPlayer, f);
 
                 /// Running the whole MinMax algorithm, with no pruning
-                Console.WriteLine("Tree with Min/Max approach:");
+                /*Console.WriteLine("Tree with Min/Max approach:");
                 Console.WriteLine("===========================");
                 NTree<MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState> tree = conf.fitModel(cgs);
                 tree.Print((x) => x.ToString());
                 Console.WriteLine();
-                Console.WriteLine();
+                Console.WriteLine();*/
 
                 /// Running the whole MinMax algorithm with alpha/beta pruning
                 Console.WriteLine("Tree with Min/Max approach and Alpha/Beta Pruning:");

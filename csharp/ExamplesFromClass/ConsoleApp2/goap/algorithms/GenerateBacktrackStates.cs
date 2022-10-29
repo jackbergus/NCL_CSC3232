@@ -26,7 +26,7 @@ namespace ConsoleApp2.goap.algorithms
                 if (Goal.Count == 1) {
                     var x = Goal.First();
                     bool isAcceptingDst = cwi.init.Keys.Contains(x);
-                    var dst = graphs[0].addVertex(new EqualityHashSet<T>(x), false, isAcceptingDst);
+                    var dst = graphs[0].addVertex(new EqualityHashSet<T>(x), true, isAcceptingDst);
                     if (!isAcceptingDst) 
                         DFSGenerateBacktrackStates(0, Goal.First());
                 } else {
@@ -34,7 +34,7 @@ namespace ConsoleApp2.goap.algorithms
                     List<T> toExpand = new List<T>();
                     foreach (var x in Goal) {
                         bool isAcceptingDst = cwi.init.Keys.Contains(x);
-                        var dst = graphs[0].addVertex(new EqualityHashSet<T>(x), false, isAcceptingDst);
+                        var dst = graphs[0].addVertex(new EqualityHashSet<T>(x), true, isAcceptingDst);
                         graphs[0].addEdge(src, dst, new SimpleHornClause<T>(x));///
                         if (!isAcceptingDst) toExpand.Add(x);
                     }

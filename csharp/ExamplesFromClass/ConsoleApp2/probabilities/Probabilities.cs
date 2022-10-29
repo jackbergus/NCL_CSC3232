@@ -8,7 +8,7 @@ namespace ConsoleApp2.probabilities
         {
 
             // 1. Running the first scenario from the lecture #1 
-            if (false) {
+            if (true) {
                 FirstScenario fs = new FirstScenario();
                 //    a) computing the number of total turns from the best case scenario
                 ulong test = fs.runBestCaseScenario();
@@ -32,7 +32,7 @@ namespace ConsoleApp2.probabilities
             }
 
             // 3. Running the third scenario from lecture #1, which is running the previous one with a given strategy
-            if (false) {
+            if (true) {
                 double sum = 0;
                 double max = 5000;
                 long max_val = -1;
@@ -53,7 +53,7 @@ namespace ConsoleApp2.probabilities
             }
 
             // 4/5. Playing with both the fourth and the fifth scenario
-            {
+            if (false) {
                 double max = 100.0;
                 double maxVal = -1;
                 double minVal = Double.MaxValue;
@@ -75,7 +75,7 @@ namespace ConsoleApp2.probabilities
 
             Console.WriteLine();
 
-            {
+            if (false) {
                 double max = 100.0;
                 double maxVal = -1;
                 double minVal = Double.MaxValue;
