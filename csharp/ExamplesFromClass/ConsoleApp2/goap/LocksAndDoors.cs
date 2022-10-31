@@ -75,6 +75,7 @@ namespace ConsoleApp2.goap
                 SimpleHornClause<string> r11c = new SimpleHornClause<string>(door_d1, door_b, key_f /* => */, door_f);
                 cwi = new ClosedWorldInference<string>(new EqualityHashSet<string>(key_a),
                                                                             new EqualityHashSet<SimpleHornClause<string>>(r1, r2a, r2b, r3a, r3b, r4, r5, r6, r7, r8, r9, r10, r11, r6b, r9b, r11b, r11c));
+                
             }
             GenerateBacktrackStates<string> algorithm = new GenerateBacktrackStates<string>(cwi);
             var x = algorithm.generateGraphs(new EqualityHashSet<string>(door_f));

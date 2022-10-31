@@ -358,18 +358,18 @@ namespace ConsoleApp2.goap
             }
             var cwi = new ClosedWorldInference<string>(premises, compliance_rules);
             GenerateBacktrackStates<string> algorithm = new GenerateBacktrackStates<string>(cwi);
-            List<List<String>> listOfStrategies = new List<List<string>>();
+            var listOfStrategies = new List<List<string>>();
             foreach (var end in candidate_end_door) {
-                var x = algorithm.generateGraphs(new EqualityHashSet<string>(end));
-                foreach (var graph in x) {
+                var graph_list = algorithm.generateGraphs(new EqualityHashSet<string>(end));
+                foreach (var graph in graph_list) {
                     if (graph.errors.Count == 0) {
-                        List<String> ls = new List<string>();
+                        List<string> ls = new List<string>();
                         var stack = graph.TopologicalSort();
                         foreach (int step in stack) {
                             var resOrDoors = graph.resolveNode(step).node;
                             if (resOrDoors.Count > 1) {
                                 Console.Error.WriteLine("ERROR: Expected 1 door/resource!");
-                                System.Environment.Exit(1);
+                                Environment.Exit(1);
                             } else {
                                 ls.AddRange(resOrDoors);
                             }

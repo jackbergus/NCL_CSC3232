@@ -6,7 +6,7 @@ namespace ConsoleApp2.goap.algorithms
     public class Dijkstra
     {
 
-        int minDistance(int[] dist,
+         static int minDistance(int[] dist,
     bool[] sptSet)
         {
             int V = Math.Min(dist.Length, sptSet.Length);
