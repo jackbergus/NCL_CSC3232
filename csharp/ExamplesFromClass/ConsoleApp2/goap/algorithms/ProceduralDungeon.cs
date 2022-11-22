@@ -371,6 +371,7 @@ namespace ConsoleApp2.goap
                                 Console.Error.WriteLine("ERROR: Expected 1 door/resource!");
                                 Environment.Exit(1);
                             } else {
+                                resOrDoors.Reverse();
                                 ls.AddRange(resOrDoors);
                             }
                         } if (ls.Count > 0) {

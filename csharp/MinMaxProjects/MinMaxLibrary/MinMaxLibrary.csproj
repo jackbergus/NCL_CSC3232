@@ -41,10 +41,10 @@
     <Compile Include="algorithms\MaxNAlgorithm.cs" />
     <Compile Include="algorithms\Winner.cs" />
     <Compile Include="algorithms\ScoreAssessment.cs" />
-    <Compile Include="algorithms\PlayerConf.cs" />
     <Compile Include="utils\TreeBasedGameConfiguration.cs" />
     <Compile Include="utils\TreeBasedPlayerConf.cs" />
     <Compile Include="algorithms\ExpectedMinMax.cs" />
+    <Compile Include="algorithms\AbstractClasses.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

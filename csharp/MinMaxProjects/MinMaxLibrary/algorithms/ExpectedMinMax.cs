@@ -171,12 +171,9 @@ namespace MinMaxLibrary.algorithms
 
 
 
-        public class CurrentGameState
+        public class CurrentGameState : AbstractGameState<ActionName, GameConfiguration, PlayerConfiguration>
         {
-            /// <summary>
-            /// Configuration of the whole game
-            /// </summary>
-            public GameConfiguration gameConfiguration;
+
 
             /// <summary>
             /// Opponent's configuration
@@ -192,14 +189,8 @@ namespace MinMaxLibrary.algorithms
             /// Set to true if it is the player's turn, and to falso if it is the opponent's
             /// </summary>
             public IsTurnOf isPlayerTurn;
-
-            /// <summary>
-            /// Accumulator for assessing 
-            /// </summary>
-            public ScoreAssessment<ActionName> action;
             internal double alpha;
             internal double beta;
-            public ActionName parentAction;
 
             public bool isPruned = false;
 
@@ -228,27 +219,27 @@ namespace MinMaxLibrary.algorithms
                 alpha = -double.MaxValue;
                 beta = double.MaxValue;
             }
-            public CurrentGameState(CurrentGameState x, IsTurnOf nextTurn, ActionName parent, double a = -double.MaxValue, double b = double.MaxValue)
-            {
-                gameConfiguration = x.gameConfiguration;
-                opponentLifeBar = x.opponentLifeBar;
-                playerLifeBar = x.playerLifeBar;
-                isPlayerTurn = nextTurn;
-                action = new ScoreAssessment<ActionName>();
-                parentAction = parent;
-                alpha = a;
-                beta = b;
-            }
-
-            public CurrentGameState(GameConfiguration gc, PlayerConfiguration opp, PlayerConfiguration pl, IsTurnOf playerTurn)
-            {
-                gameConfiguration = gc;
-                opponentLifeBar = opp;
-                playerLifeBar = pl;
-                isPlayerTurn = playerTurn;
-                alpha = 0.0;
-                beta = 0.0;
-            }
+            // public CurrentGameState(CurrentGameState x, IsTurnOf nextTurn, ActionName parent, double a = -double.MaxValue, double b = double.MaxValue)
+            // {
+            //     gameConfiguration = x.gameConfiguration;
+            //     opponentLifeBar = x.opponentLifeBar;
+            //     playerLifeBar = x.playerLifeBar;
+            //     isPlayerTurn = nextTurn;
+            //     action = new ScoreAssessment<ActionName>();
+            //     parentAction = parent;
+            //     alpha = a;
+            //     beta = b;
+            // }
+            //
+            // public CurrentGameState(GameConfiguration gc, PlayerConfiguration opp, PlayerConfiguration pl, IsTurnOf playerTurn)
+            // {
+            //     gameConfiguration = gc;
+            //     opponentLifeBar = opp;
+            //     playerLifeBar = pl;
+            //     isPlayerTurn = playerTurn;
+            //     alpha = 0.0;
+            //     beta = 0.0;
+            // }
 
             /// <summary>
             /// Returning the score as from the point of view of the enemy, that wants to maximize its overall value.
@@ -258,23 +249,14 @@ namespace MinMaxLibrary.algorithms
             /// in this situation, it is advised to cap the getScore values for each opponent between 0 and 1, so that 
             /// </summary>
             /// <returns></returns>
-            public double getEnemyUtilityScore()
+            public override double getEnemyUtilityScore()
             {
                 double opp = opponentLifeBar.getScore();
                 double pl = playerLifeBar.getScore();
                 return opp - pl;
             }
 
-            /// <summary>
-            /// Optional, for backward compatibility with the MPD. Returns a local reward for transitioning from a given configuration to another
-            /// </summary>
-            /// <param name="nextStep">Status immediately following the current one</param>
-            /// <returns>reward score associated to the transitioning</returns>
-            public double getLocalRewardForTransition(CurrentGameState nextStep)
-            {
-                Debug.Assert(isPlayerTurn != nextStep.isPlayerTurn);
-                return nextStep.getEnemyUtilityScore() - getEnemyUtilityScore();
-            }
+
 
             /// <summary>
             /// Uses the player configuration to assess whether one of the players is going to win the game.
@@ -283,7 +265,7 @@ namespace MinMaxLibrary.algorithms
             /// player/NPC that is able to maximize its score).
             /// </summary>
             /// <returns></returns>
-            public Winner whoWins()
+            public override Winner whoWins()
             {
                 Func<bool, bool, bool> impl = (prem, cons) => (!prem) || cons;
                 var oppLost = opponentLifeBar.hasPlayerLost();
@@ -292,37 +274,14 @@ namespace MinMaxLibrary.algorithms
                 bool plWon;
                 oppWon = opponentLifeBar.hasPlayerWon();
                 plWon = playerLifeBar.hasPlayerWon();
-                // If one loses, the other one wins automatically
-                if (plLost)
-                {
-                    oppWon = true;
-                    oppLost = false;
-                    plWon = false;
-                }
-                if (oppLost)
-                {
-                    plWon = true;
-                    plLost = false;
-                    oppWon = false;
-                }
-                if ((plLost && oppLost) || (plWon && plLost))
-                    return Winner.TIE_OR_GAME_RUNNING;
-
-                // If I don't have a tie, then the game is still running (noone has won yet) or there is only one winner
-                Debug.Assert(((!plLost) && (!oppLost)) || (plWon && (oppLost)) || (oppWon && (plLost)));
-
-                if (oppWon)
-                    return Winner.OPPONENT_WINS;
-                else if (plWon)
-                    return Winner.PLAYER_WINS;
-                else
-                    return Winner.TIE_OR_GAME_RUNNING;
+                return basicVictoryDecision(plLost, oppWon, oppLost, plWon);
             }
 
             internal void setActionFromParent(ActionName actionName)
             {
                 parentAction = actionName;
             }
+            
         }
 
         UpdateNextState uns;
