@@ -16,7 +16,7 @@ namespace MinMaxLibrary.algorithms {
         /// from the characterization of the action name, and only depends to the possible total number of actions that a character
         /// can perform in a given state
         /// </summary>
-        class UpdateNextState : AbstractUpdateNextState<ActionName, GameConfiguration, PlayerConfiguration> {
+        class UpdateNextState {
             /// <summary>
             /// Update state: given the current game configuration, also containing the information of which is the player that
             /// is going to play next, and a possible action that might be performed by the player, then it returns a state 
@@ -33,6 +33,7 @@ namespace MinMaxLibrary.algorithms {
             private HashSet<ActionName> opponentActions;
             private HashSet<ActionName> playerActions;
             private List<ActionName> currentPlayerList;
+            private CurrentGameState currState;
 
             /// <summary>
             /// Class constructor
@@ -51,14 +52,21 @@ namespace MinMaxLibrary.algorithms {
                 currState = null;
             }
 
-
+            /// <summary>
+            /// Current state from which we want to generate states
+            /// </summary>
+            /// <returns></returns>
+            public CurrentGameState getCurrentState()
+            {
+                return currState;
+            }
 
             /// <summary>
             /// This is the method actually setting the whole logic of the software
             /// </summary>
             /// <param name="x"></param>
             /// <returns></returns>
-            public override AbstractUpdateNextState<ActionName, GameConfiguration, PlayerConfiguration> setCurrentState(AbstractGameState<ActionName, GameConfiguration, PlayerConfiguration> x) {
+            public UpdateNextState setCurrentState(CurrentGameState x) {
                 /// Setting up the current state, so to retrieve it when needed
                 currState = x;
                 /// Selecting the actions from a specific player, and, in addition 
@@ -112,7 +120,6 @@ namespace MinMaxLibrary.algorithms {
                     var opt = updateState(currState, currentPlayerList[actionId]);
                     if (opt.HasValue)
                     {
-                        
                         Debug.Assert(opt.Value.isPlayerTurn != currState.isPlayerTurn);
                         opt.Value.setActionFromParent(currentPlayerList[actionId]);
                         return new Optional<Tuple<CurrentGameState, double>>(new Tuple<CurrentGameState, double>(opt.Value, currState.getLocalRewardForTransition(opt.Value)));
@@ -140,6 +147,10 @@ namespace MinMaxLibrary.algorithms {
                 return currentPlayerList.Count >= (actionId);
             }
 
+            public CurrentGameState getCurrentGameState() {
+                return currState;
+            }
+
             public int getActionId(ActionName value) {
                 return currentPlayerList.FindIndex(a => a.Equals(value));
             }
@@ -147,7 +158,12 @@ namespace MinMaxLibrary.algorithms {
 
 
 
-        public class CurrentGameState : AbstractGameState<ActionName, GameConfiguration, PlayerConfiguration> {
+        public class CurrentGameState {
+            /// <summary>
+            /// Configuration of the whole game
+            /// </summary>
+            public GameConfiguration gameConfiguration;
+
             /// <summary>
             /// Opponent's configuration
             /// </summary>
@@ -162,8 +178,14 @@ namespace MinMaxLibrary.algorithms {
             /// Set to true if it is the player's turn, and to falso if it is the opponent's
             /// </summary>
             public bool isPlayerTurn;
+
+            /// <summary>
+            /// Accumulator for assessing 
+            /// </summary>
+            public ScoreAssessment<ActionName> action;
             internal double alpha;
             internal double beta;
+            public ActionName parentAction;
 
             public bool isPruned = false; 
 
@@ -204,15 +226,15 @@ namespace MinMaxLibrary.algorithms {
                 beta = b;
             }
 
-            // public CurrentGameState(GameConfiguration gc, PlayerConfiguration opp, PlayerConfiguration pl, bool playerTurn)
-            // {
-            //     gameConfiguration = gc;
-            //     opponentLifeBar = opp;
-            //     playerLifeBar = pl;
-            //     isPlayerTurn = playerTurn;
-            //     alpha = 0.0;
-            //     beta = 0.0;
-            // }
+            public CurrentGameState(GameConfiguration gc, PlayerConfiguration opp, PlayerConfiguration pl, bool playerTurn)
+            {
+                gameConfiguration = gc;
+                opponentLifeBar = opp;
+                playerLifeBar = pl;
+                isPlayerTurn = playerTurn;
+                alpha = 0.0;
+                beta = 0.0;
+            }
 
             /// <summary>
             /// Returning the score as from the point of view of the enemy, that wants to maximize its overall value.
@@ -222,11 +244,22 @@ namespace MinMaxLibrary.algorithms {
             /// in this situation, it is advised to cap the getScore values for each opponent between 0 and 1, so that 
             /// </summary>
             /// <returns></returns>
-            public override double getEnemyUtilityScore()
+            public double getEnemyUtilityScore()
             {
                 double opp = opponentLifeBar.getScore();
                 double pl = playerLifeBar.getScore();
                 return opp - pl;
+            }
+
+            /// <summary>
+            /// Optional, for backward compatibility with the MPD. Returns a local reward for transitioning from a given configuration to another
+            /// </summary>
+            /// <param name="nextStep">Status immediately following the current one</param>
+            /// <returns>reward score associated to the transitioning</returns>
+            public double getLocalRewardForTransition(CurrentGameState nextStep)
+            {
+                Debug.Assert(isPlayerTurn != nextStep.isPlayerTurn);
+                return nextStep.getEnemyUtilityScore() - getEnemyUtilityScore();
             }
 
             /// <summary>
@@ -236,7 +269,7 @@ namespace MinMaxLibrary.algorithms {
             /// player/NPC that is able to maximize its score).
             /// </summary>
             /// <returns></returns>
-            public override Winner whoWins()
+            public Winner whoWins()
             {
                 Func<bool, bool, bool> impl = (prem,cons) => (!prem) || cons;
                 var oppLost = opponentLifeBar.hasPlayerLost();
@@ -246,8 +279,35 @@ namespace MinMaxLibrary.algorithms {
                 oppWon = opponentLifeBar.hasPlayerWon();
                 plWon = playerLifeBar.hasPlayerWon();
                 // If one loses, the other one wins automatically
+                if (plLost)
+                {
+                    oppWon = true;
+                    oppLost = false;
+                    plWon = false;
+                }
+                if (oppLost)
+                {
+                    plWon = true;
+                    plLost = false;
+                    oppWon = false;
+                }
+                if ((plLost && oppLost) || (plWon && oppWon))
+                    return Winner.TIE_OR_GAME_RUNNING;
 
-                return basicVictoryDecision(plLost, oppWon, oppLost, plWon);
+                // If I don't have a tie, then the game is still running (noone has won yet) or there is only one winner
+                Debug.Assert(((!plLost) && (!oppLost)) || (plWon && (oppLost)) || (oppWon && (plLost)));
+
+                if (oppWon)
+                    return Winner.OPPONENT_WINS;
+                else if (plWon)
+                    return Winner.PLAYER_WINS;
+                else
+                    return Winner.TIE_OR_GAME_RUNNING;
+            }
+
+            internal void setActionFromParent(ActionName actionName)
+            {
+                parentAction = actionName;
             }
         }
 
@@ -273,17 +333,17 @@ namespace MinMaxLibrary.algorithms {
         /// </summary>
         /// <param name="cgs"></param>
         /// <returns></returns>
-        public NTree<AbstractGameState<ActionName, GameConfiguration, PlayerConfiguration>> fitWithAlphaBetaPruning(CurrentGameState cgs) {
-            NTree<AbstractGameState<ActionName, GameConfiguration, PlayerConfiguration>> retVal = null;
-            Stack<RecursionParameters<NTree<AbstractGameState<ActionName, GameConfiguration, PlayerConfiguration>>>> stack = new Stack<RecursionParameters<NTree<AbstractGameState<ActionName, GameConfiguration, PlayerConfiguration>>>>();
+        public NTree<CurrentGameState> fitWithAlphaBetaPruning(CurrentGameState cgs) {
+            NTree<CurrentGameState> retVal = null;
+            Stack<RecursionParameters<NTree<CurrentGameState>>> stack = new Stack<RecursionParameters<NTree<CurrentGameState>>>();
 
             // Mimicking the first call to the recursive function
-            stack.Push(new RecursionParameters<NTree<AbstractGameState<ActionName, GameConfiguration, PlayerConfiguration>>>(new NTree<CurrentGameState>(cgs)));
+            stack.Push(new RecursionParameters<NTree<CurrentGameState>>(new NTree<CurrentGameState>(cgs)));
 
             while (stack.Count > 0)
             {
                 /// Either starting a new recursive call, or recovering from a former child call
-                RecursionParameters<NTree<AbstractGameState<ActionName, GameConfiguration, PlayerConfiguration>>> currentSnapshot = stack.Pop();
+                RecursionParameters<NTree<CurrentGameState>> currentSnapshot = stack.Pop();
                 /// Setting up the action selectors to the actions that might be performed from the given play configuration
                 uns.setCurrentState(currentSnapshot.input.data);
                 /// Returning a child that might be called in the next iterative step. If none is returned, then we stop the iteration
@@ -359,6 +419,47 @@ namespace MinMaxLibrary.algorithms {
             }
 
             return retVal;
+        }
+
+        /// <summary>
+        /// This function selects the child from the tree, it that exists, exhibiting the forecasted game configuration
+        /// </summary>
+        /// <param name="tree">The tree resulting from "fitting" using a given algorithm</param>
+        /// <param name="action">The action that was observed at this current stage, thus leading towards another predicted configuration</param>
+        /// <returns>The resulting game configuration resulting from the application of the given action</returns>
+        public NTree<CurrentGameState> navigateTreeWithAction(NTree<CurrentGameState> tree, ActionName action) {
+            for (int i = 0, N = tree.getChildrenSize(); i < N; i++)  {
+                var child = tree.GetChild(i);
+                if (child.data.parentAction.Equals(action))
+                    return child;
+            }
+            return null;
+        }
+        
+        /// <summary>
+        /// This function returns the overall best strategy for the MAXimising player under the assumption that the
+        /// MINimising player will always do the least performant strategy
+        /// </summary>
+        /// <param name="tree">The "fitted" tree containing all of the possible strategies</param>
+        /// <returns>The list of the best actions maximising the advantage for the MAXimising agent</returns>
+        public List<ScoreAssessment<ActionName>> retrieveReversedBestActivity(NTree<CurrentGameState> tree)  {
+            if (tree.getChildrenSize() == 0)  {
+                var ls = new List<ScoreAssessment<ActionName>>();
+                ls.Add(tree.data.action);
+                return ls;
+            } else {
+                for (int i = 0, N = tree.getChildrenSize(); i < N; i++)  {
+                    var child = tree.GetChild(i);
+                    if (child.data.parentAction.Equals(tree.data.action.getBestAction()))
+                    {
+                        var ls = retrieveReversedBestActivity(child);
+                        ls.Add(tree.data.action);
+                        return ls;
+                    }
+                }
+                // If wrongly no child has the best action:
+                return new List<ScoreAssessment<ActionName>>();
+            }
         }
 
         /// <summary>

@@ -26,12 +26,14 @@ namespace MinMaxLibrary.algorithms
         }
 
 
-        public class CurrentGameState : AbstractGameState<ActionName, GameConfiguration, PlayerConfiguration>
+        public class CurrentGameState
         {
+            public GameConfiguration gameConfiguration;
             public List<Player> players;
             public int playerIdTurn;
             public ActionName   bestAction;
             public List<double> bestUtilityVector;
+            public ActionName parentAction;
 
             private String printUtilityVector()
             {
@@ -46,17 +48,17 @@ namespace MinMaxLibrary.algorithms
                        "; parentAction = " + parentAction +"}";
             }
 
-            // public CurrentGameState(CurrentGameState x)
-            // {
-            //     gameConfiguration = x.gameConfiguration;
-            //     players = new List<Player>();
-            //     foreach (var y in x.players)
-            //         players.Add(y.clone());
-            //     playerIdTurn = x.playerIdTurn;
-            //     bestAction = x.bestAction;
-            //     bestUtilityVector = x.bestUtilityVector;    
-            //     parentAction = x.parentAction; 
-            // }
+            public CurrentGameState(CurrentGameState x)
+            {
+                gameConfiguration = x.gameConfiguration;
+                players = new List<Player>();
+                foreach (var y in x.players)
+                    players.Add(y.clone());
+                playerIdTurn = x.playerIdTurn;
+                bestAction = x.bestAction;
+                bestUtilityVector = x.bestUtilityVector;    
+                parentAction = x.parentAction; 
+            }
 
             public CurrentGameState()
             {
@@ -80,13 +82,13 @@ namespace MinMaxLibrary.algorithms
                 beta = b;*/
             }
 
-            // public CurrentGameState(GameConfiguration gc, List<Player> p, int playerIdTurn)
-            // {
-            //     gameConfiguration = gc;
-            //     players = new List<Player>();
-            //     foreach (Player p2 in p) players.Add(p2.clone());
-            //     this.playerIdTurn = playerIdTurn;
-            // }
+            public CurrentGameState(GameConfiguration gc, List<Player> p, int playerIdTurn)
+            {
+                gameConfiguration = gc;
+                players = new List<Player>();
+                foreach (Player p2 in p) players.Add(p2.clone());
+                this.playerIdTurn = playerIdTurn;
+            }
 
             /// <summary>
             /// Returning the score as from the point of view of the enemy, that wants to maximize its overall value.
@@ -96,7 +98,7 @@ namespace MinMaxLibrary.algorithms
             /// in this situation, it is advised to cap the getScore values for each opponent between 0 and 1, so that 
             /// </summary>
             /// <returns></returns>
-            public override double getEnemyUtilityScore()
+            public double getEnemyUtilityScore()
             {
                 double total = 0.0;
                 foreach (var p in players) 
@@ -121,13 +123,24 @@ namespace MinMaxLibrary.algorithms
             }
 
             /// <summary>
+            /// Optional, for backward compatibility with the MPD. Returns a local reward for transitioning from a given configuration to another
+            /// </summary>
+            /// <param name="nextStep">Status immediately following the current one</param>
+            /// <returns>reward score associated to the transitioning</returns>
+            public double getLocalRewardForTransition(CurrentGameState nextStep)
+            {
+                //Debug.Assert(playerIdTurn != nextStep.playerIdTurn);
+                return nextStep.getEnemyUtilityScore() - getEnemyUtilityScore();
+            }
+
+            /// <summary>
             /// Uses the player configuration to assess whether one of the players is going to win the game.
             /// Overall, the TIE configuration is drawn from the unability of the status generator to generate 
             /// another configuration, but such requirement might change from time to time (e.g., still wins the 
             /// player/NPC that is able to maximize its score).
             /// </summary>
             /// <returns></returns>
-            public override Winner whoWins()
+            public Winner whoWins()
             {
                 Func<bool, bool, bool> impl = (prem, cons) => (!prem) || cons;
                 var oppLost = haveAllEnemiesLost();
@@ -136,10 +149,32 @@ namespace MinMaxLibrary.algorithms
                 bool plWon;
                 oppWon = hasOneEnemyWon();
                 plWon = hasOneHelperWon();
-                return basicVictoryDecision(plLost, oppWon, oppLost, plWon);
-            }
+                // If one loses, the other one wins automatically
+                if (plLost)
+                {
+                    oppWon = true;
+                    oppLost = false;
+                    plWon = false;
+                }
+                if (oppLost)
+                {
+                    plWon = true;
+                    plLost = false;
+                    oppWon = false;
+                }
+                if ((plLost && oppLost) || (plWon && oppWon))
+                    return Winner.TIE_OR_GAME_RUNNING;
 
-           
+                // If I don't have a tie, then the game is still running (noone has won yet) or there is only one winner
+                Debug.Assert(((!plLost) && (!oppLost)) || (plWon && (oppLost)) || (oppWon && (plLost)));
+
+                if (oppWon)
+                    return Winner.OPPONENT_WINS;
+                else if (plWon)
+                    return Winner.PLAYER_WINS;
+                else
+                    return Winner.TIE_OR_GAME_RUNNING;
+            }
 
             internal void setActionFromParent(ActionName actionName)
             {
@@ -288,6 +323,25 @@ namespace MinMaxLibrary.algorithms
             uns = new UpdateNextState(updateState, players);
         }
 
+       public List<ActionName> retrieveReversedBestActivity(NTree<CurrentGameState> tree)  {
+           if (tree.getChildrenSize() == 0)  {
+               var ls = new List<ActionName>();
+               ls.Add(tree.data.bestAction);
+               return ls;
+           } else {
+               for (int i = 0, N = tree.getChildrenSize(); i < N; i++)  {
+                   var child = tree.GetChild(i);
+                   if (child.data.parentAction.Equals(tree.data.bestAction))
+                   {
+                       var ls = retrieveReversedBestActivity(child);
+                       ls.Add(tree.data.bestAction);
+                       return ls;
+                   }
+               }
+               // If wrongly no child has the best action:
+               return new List<ActionName>();
+           }
+       }
 
         /// <summary>
         /// This action fits the whole model. This solution, which visits the set of all the possible states, might be used similarly to the
@@ -339,7 +393,7 @@ namespace MinMaxLibrary.algorithms
                         > currentSnapshot.input.data.bestUtilityVector[currentSnapshot.input.data.playerIdTurn]))
                     {
 
-                        currentSnapshot.input.data.bestAction = retVal.data.bestAction;
+                        currentSnapshot.input.data.bestAction = retVal.data.parentAction;
                         currentSnapshot.input.data.bestUtilityVector = retVal.data.bestUtilityVector;
                     }
                 }
