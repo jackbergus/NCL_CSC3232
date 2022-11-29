@@ -61,6 +61,7 @@
     <Compile Include="goap\structures\SimpleHornClause.cs" />
     <Compile Include="goap\structures\EqualityHashSetWithMultipleWeights.cs" />
     <Compile Include="goap\StudyOrParty.cs" />
+    <Compile Include="goap\VariationOnMinMaxRealisticWithRL.cs" />
     <Compile Include="probabilities\Board.cs" />
     <Compile Include="probabilities\BasicScenarios.cs" />
     <Compile Include="probabilities\Door.cs" />
