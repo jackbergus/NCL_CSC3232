@@ -45,7 +45,7 @@ namespace MinMaxProjects.tests
                 Func<MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState, string, Optional<MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState>> f = (conff, act) =>
                 {
 
-                    if (Math.Abs(conff.opponentLifeBar.getScore() + conff.playerLifeBar.getScore() - 1.0) < 0.1)
+                        if (Math.Abs(conff.opponentLifeBar.getScore() + conff.playerLifeBar.getScore() - 1.0) < 0.09)
                     {
                         return new Optional<MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState>();
                     }
@@ -124,10 +124,10 @@ namespace MinMaxProjects.tests
                         // If I reached a pruned node, then it means that I need to re-calculate the algorithm
                         truncTree = conf.fitWithAlphaBetaPruning(truncTree.data);
                     } else if ((truncTree.getChildrenSize() == 0))  {
-                        if ((scorePlayer < 0.1) || (scoreNPC < 0.1))  {
-                            if (scorePlayer < 0.1)
+                        if ((scorePlayer < 0.09) || (scoreNPC < 0.09))  {
+                            if (scorePlayer < 0.09)
                                 Console.WriteLine("Fatality: Player loses; Player="+scorePlayer+" Enemy="+scoreNPC);
-                            if (scoreNPC < 0.1)
+                            if (scoreNPC < 0.09)
                                 Console.WriteLine("Fatality: NPC loses Player="+scorePlayer+" Enemy="+scoreNPC);
                             break;
                         }
@@ -154,10 +154,10 @@ namespace MinMaxProjects.tests
                         // If I reached a pruned node, then it means that I need to re-calculate the algorithm
                         truncTree = conf.fitWithAlphaBetaPruning(truncTree.data);
                     } else if ((truncTree.getChildrenSize() == 0))  {
-                        if ((scorePlayer < 0.1) || (scoreNPC <= 0.1))  {
-                            if (scorePlayer < 0.1)
+                        if ((scorePlayer < 0.09) || (scoreNPC < 0.09))  {
+                            if (scorePlayer < 0.09)
                                 Console.WriteLine("Fatality: Player loses Player="+scorePlayer+" Enemy="+scoreNPC);
-                            if (scoreNPC < 0.1)
+                            if (scoreNPC < 0.09)
                                 Console.WriteLine("Fatality: NPC loses Player="+scorePlayer+" Enemy="+scoreNPC);
                             break;
                         }
