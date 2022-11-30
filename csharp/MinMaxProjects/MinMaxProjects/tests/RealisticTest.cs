@@ -45,7 +45,8 @@ namespace MinMaxProjects.tests
                 Func<MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState, string, Optional<MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState>> f = (conff, act) =>
                 {
 
-                        if (Math.Abs(conff.opponentLifeBar.getScore() + conff.playerLifeBar.getScore() - 1.0) < 0.09)
+                        if ((conff.opponentLifeBar.getScore() < 0.09) ||
+                            (conff.playerLifeBar.getScore() < 0.09))
                     {
                         return new Optional<MinMax<string, TreeBasedGameConfiguration<string>, TreeBasedPlayerConf>.CurrentGameState>();
                     }
@@ -120,6 +121,11 @@ namespace MinMaxProjects.tests
                     }
                     var prevTree = truncTree;
                     truncTree = conf.navigateTreeWithAction(truncTree, truncTree.data.action.getBestAction());
+                    if (truncTree == null) {
+                        // If I reached a pruned node, then it means that I need to re-calculate the algorithm
+                        truncTree = conf.fitWithAlphaBetaPruning(prevTree.data);
+                        truncTree = conf.navigateTreeWithAction(truncTree, truncTree.data.action.getBestAction());
+                    }
                     if (truncTree.data.isPruned) {
                         // If I reached a pruned node, then it means that I need to re-calculate the algorithm
                         truncTree = conf.fitWithAlphaBetaPruning(truncTree.data);
@@ -150,6 +156,11 @@ namespace MinMaxProjects.tests
                     }
                     prevTree = truncTree;
                     truncTree = conf.navigateTreeWithAction(truncTree, element);
+                    if (truncTree == null) {
+                        // If I reached a pruned node, then it means that I need to re-calculate the algorithm
+                        truncTree = conf.fitWithAlphaBetaPruning(prevTree.data);
+                        truncTree = conf.navigateTreeWithAction(truncTree, element);
+                    }
                     if (truncTree.data.isPruned) {
                         // If I reached a pruned node, then it means that I need to re-calculate the algorithm
                         truncTree = conf.fitWithAlphaBetaPruning(truncTree.data);
