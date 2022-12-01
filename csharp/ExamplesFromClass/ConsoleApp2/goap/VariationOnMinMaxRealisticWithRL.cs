@@ -42,7 +42,7 @@ namespace ConsoleApp2.goap
             if ((playerHealthBar == 1.0) && (enemyHealthBar == 1.0))  {
                 isStartingState = true;
             }
-            int curr = G.addVertex(val, isStartingState, isAcceptingState);
+            int curr = G.addVertex(val, isStartingState);
             if (!terminateRecursion)  {
                 // The enemy performs an action or nothing at all.
                 // - Enemy's Punch: gives the player a damage of 0.3. This is more likely than a NOOP
