@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Alba.CsConsoleFormat, Version=1.0.0.89, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Alba.CsConsoleFormat.1.0.0\lib\net40\Alba.CsConsoleFormat.dll</HintPath>
+    </Reference>
     <Reference Include="MathNet.Numerics, Version=4.15.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.4.15.0\lib\net461\MathNet.Numerics.dll</HintPath>
     </Reference>
@@ -42,6 +45,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -50,6 +54,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="extern\intervaltree\IIntervalTree.cs" />
+    <Compile Include="extern\intervaltree\IntervalTree.cs" />
+    <Compile Include="extern\intervaltree\IntervalTreeNode.cs" />
+    <Compile Include="extern\intervaltree\RangeValuePair.cs" />
+    <Compile Include="genetic\chromosomes\ConcreteChromosome.cs" />
+    <Compile Include="genetic\chromosomes\CrossoverLeft.cs" />
+    <Compile Include="genetic\chromosomes\IChromosome.cs" />
+    <Compile Include="genetic\chromosomes\MutatedChromosome.cs" />
+    <Compile Include="genetic\DiscreteAction.cs" />
+    <Compile Include="genetic\ChromosomeSpecifications.cs" />
     <Compile Include="goap\algorithms\GenerateBacktrackStates.cs" />
     <Compile Include="goap\algorithms\GenerateUnweightedPossibleStates.cs" />
     <Compile Include="goap\algorithms\GenerateWeightedPossibleStates.cs" />
@@ -62,6 +76,7 @@
     <Compile Include="goap\structures\EqualityHashSetWithMultipleWeights.cs" />
     <Compile Include="goap\StudyOrParty.cs" />
     <Compile Include="goap\VariationOnMinMaxRealisticWithRL.cs" />
+    <Compile Include="grammar\Grammar.cs" />
     <Compile Include="probabilities\Board.cs" />
     <Compile Include="probabilities\BasicScenarios.cs" />
     <Compile Include="probabilities\Door.cs" />
@@ -81,16 +96,24 @@
     <Compile Include="utils\CppStructUtils.cs" />
     <Compile Include="utils\Operations.cs" />
     <Compile Include="utils\Pair.cs" />
+    <Compile Include="utils\RanNumericalRecipes.cs" />
     <Compile Include="utils\UniformRandom.cs" />
     <Compile Include="goap\algorithms\Dijkstra.cs" />
     <Compile Include="goap\algorithms\AllPaths.cs" />
     <Compile Include="goap\algorithms\ProceduralDungeon.cs" />
     <Compile Include="goap\BasicDungeonGeneration.cs" />
+    <Compile Include="genetic\DiscreteObservation.cs" />
+    <Compile Include="utils\Time.cs" />
+    <Compile Include="statecharts\GhostNPC.cs" />
+    <Compile Include="statecharts\Goomba.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <Folder Include="genetic\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
