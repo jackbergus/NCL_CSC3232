@@ -130,31 +130,35 @@ namespace ConsoleApp2.graphs
         public Tuple<List<int>, double> Astar(Graph<T> graph, int src, int target, Func<int,double> h)
         {
             init(src);
-            HashSet<int> openSet = new HashSet<int>();
-            openSet.Add(src);
+            HashSet<int> openSet = new HashSet<int>();          // set of nodes to be visited
+            openSet.Add(src);   
+            HashSet<int> closedSet = new HashSet<int>();        // set of visited nodes
             var fscore = new Dictionary<int, double>();
             fscore[src] = h(src);
 
             while (openSet.Count > 0)
             {
-                var current = openSet.OrderBy(item => fscore[item]).ToList()[0]; // not getDistance!
+                var current = openSet.OrderBy(item => GetDistances(fscore, item)).ToList()[0]; 
                 if (current == target)
                 {
                     break;
                 }
                 openSet.Remove(current);
+                closedSet.Add(current);
 
                 foreach (var outEdge in graph.getNeighboursOf(current))
                 {
-                    var alt = GetDistance(current) + outEdge.Value;
-                    if (alt < GetDistance(outEdge.Key))
-                    {
-                        distances[outEdge.Key] = alt;
-                        parent[outEdge.Key] = current;
-                        fscore[outEdge.Key] = alt + h(outEdge.Key);
-                        if (!openSet.Contains(outEdge.Key))
+                    if (!closedSet.Contains(outEdge.Key)) {
+                        var alt = GetDistance(current) + outEdge.Value;
+                        if (alt < GetDistance(outEdge.Key) || (!openSet.Contains(outEdge.Key))) 
                         {
-                            openSet.Add(outEdge.Key);
+                            distances[outEdge.Key] = alt;
+                            parent[outEdge.Key] = current;
+                            fscore[outEdge.Key] = alt + h(outEdge.Key);
+                            if (!openSet.Contains(outEdge.Key))
+                            {
+                                openSet.Add(outEdge.Key);
+                            }
                         }
                     }
                 }
@@ -222,8 +226,10 @@ namespace ConsoleApp2.graphs
             g.addEdge(5, 6.0, 6);
             g.addEdge(4, 2.0, 6);
             var algorithms = new ReachabilityProblem<Pair<int, int>>();
-            var resultDij = algorithms.Dijkstra(g, 0, 6);
-            var resultAs = algorithms.Astar(g, 0, 6, idx => Math.Sqrt(Math.Pow(g.GetNode(idx).key - 16,2)+Math.Pow(g.GetNode(idx).value,2)));
+            var (dijPath, dijCost) = algorithms.Dijkstra(g, 0, 6);
+            Console.WriteLine("[{0}] with cost {1}", string.Join(", ", dijPath), dijCost);
+            var (aPath, aCost) = algorithms.Astar(g, 0, 6, idx => Math.Sqrt(Math.Pow(g.GetNode(idx).key - 16,2)+Math.Pow(g.GetNode(idx).value,2)));
+            Console.WriteLine("[{0}] with cost {1}", string.Join(", ", aPath), aCost);
             Console.WriteLine("OK");
         }
     }
